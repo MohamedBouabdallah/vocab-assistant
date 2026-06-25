@@ -13,7 +13,7 @@ def listen_and_transcribe() -> str:
     Elle sert uniquement à remplir le champ texte dans l'interface.
     """
     audio_path = record_audio()
-    word = transcribe_audio(audio_path)
+    word = transcribe_audio(audio_path) if audio_path else transcribe_audio()
     return word.strip()
 
 
