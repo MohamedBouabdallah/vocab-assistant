@@ -1,35 +1,47 @@
 import ollama
+from pydantic import BaseModel
 
-def define_word(word: str) -> str:
+
+class WordDefinition(BaseModel):
+    definition: str
+    example: str
+    language: str
+
+
+def define_word(word: str) -> WordDefinition:
     prompt = f"""
 You are a strict vocabulary assistant.
 
 Term or expression:
 "{word}"
 
-Rules:
+Task:
 - Detect the language of the term or expression.
-- Your answer MUST be entirely in that same language.
-- Do NOT mention the detected language.
-- Do NOT translate the example.
-- Do NOT use English unless the term itself is English.
-- If the term is technical, explain it simply.
-- Return exactly two lines.
+- Answer in French by default.
+- If the term is foreign, give the meaning in French.
+- If the term is foreign, the example must be in the original language and include a French translation.
+- If the term is French, the example must be in French.
+- Keep everything concise.
 
-Output format:
-Definition: <definition in the same language as the term>
-Example: <example sentence in the same language as the term>
+Return ONLY valid JSON with exactly these keys:
+{{
+  "definition": "...",
+  "example": "...",
+  "language": "..."
+}}
 """
+
     response = ollama.chat(
-        model = "qwen2:7b",
-        messages=[
-            {"role": "user", "content": prompt}
-        ],
+        model="qwen2:7b",
+        messages=[{"role": "user", "content": prompt}],
     )
 
-    return response["message"]["content"]
+    content = response["message"]["content"]
+
+    return WordDefinition.model_validate_json(content)
+
 
 if __name__ == "__main__":
     word = input("Word to define: ")
-    definition = define_word(word)
-    print(definition)
+    result = define_word(word)
+    print(result)

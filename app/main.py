@@ -9,14 +9,29 @@ def main() -> None:
 
     record_audio(output_path = audio_path, duration=3)
     word = transcribe_audio(audio_path).strip()
+
+    if not word:
+        print("No word recognized. Please try again.")
+        return
+    
     print(f"Recognized: {word}")
 
-    definition = define_word(word)
-    print(definition)
+    try:
+        word_definition = define_word(word)
+    except Exception as error:
+        print("Could not generate a valid definition.")
+        print(f"Error : {error}")
+        return
+
+    print("Definition:", word_definition.definition)
+    print("Example:", word_definition.example)
+    print("Language:", word_definition.language)
 
     entry = VocabularyEntry(
         word=word,
-        definition=definition,
+        definition=word_definition.definition,
+        example=word_definition.example,
+        language=word_definition.language,
         source="voice",
     )
 
